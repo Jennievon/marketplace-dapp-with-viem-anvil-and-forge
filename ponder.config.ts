@@ -1,8 +1,7 @@
 import { createConfig } from "@ponder/core";
 import { http } from "viem";
-
-import { MARKETPLACE_ABI, TOKEN_ABI } from "./src/constants/abi";
-import { MARKETPLACE_ADDRESS, TOKEN_ADDRESS } from "./src/constants/addresses";
+import { TOKEN_ABI, MARKETPLACE_ABI } from "./src/config/abis";
+import { TOKEN_ADDRESS, MARKETPLACE_ADDRESS } from "./src/config/contracts";
 
 export default createConfig({
   networks: {
@@ -23,6 +22,11 @@ export default createConfig({
       abi: MARKETPLACE_ABI,
       address: MARKETPLACE_ADDRESS,
       startBlock: 0,
+      events: {
+        ItemListed: "ItemListed",
+        ItemSold: "ItemSold",
+        ItemDelisted: "ItemDelisted",
+      },
     },
   },
 });
