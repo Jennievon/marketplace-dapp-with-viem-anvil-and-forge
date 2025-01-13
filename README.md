@@ -13,7 +13,7 @@ A decentralized marketplace where users can list and purchase items using ERC20 
 ## Tech Stack
 
 - **Smart Contracts**: Solidity + Foundry
-- **Indexing**: Ponder
+- **Indexing**: Ponder (WIP)
 - **Frontend**: React + Viem/Wagmi
 - **Styling**: TailwindCSS
 - **Testing**: Forge
