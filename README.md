@@ -33,6 +33,7 @@ anvil
 # Terminal 2: Deploy contracts
 npm run deploy (forge script script/DeployScript.s.sol --fork-url http://localhost:8545 --broadcast)
 
+# Optional: Deploy with private key (for testing)
 npm run deploy:private [$PRIVATE_KEY] (forge script script/DeployScript.s.sol --fork-url http://localhost:8545 --broadcast --private-key $PRIVATE_KEY)
 ```
 
