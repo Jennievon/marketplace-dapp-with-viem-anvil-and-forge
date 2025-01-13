@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../contracts/Token.sol";
 import "../contracts/Marketplace.sol";
+import "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract MarketplaceTest is Test {
     Token public token;
@@ -152,7 +153,14 @@ contract MarketplaceTest is Test {
         token.approve(address(marketplace), 2000 ether);
 
         vm.prank(buyer);
-        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IERC20Errors.ERC20InsufficientBalance.selector,
+                buyer,
+                1000 ether,
+                2000 ether
+            )
+        );
         marketplace.buyItem(itemId);
     }
 }

@@ -3,6 +3,8 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../contracts/Token.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TokenTest is Test {
     Token public token;
@@ -29,8 +31,13 @@ contract TokenTest is Test {
     }
 
     function testMintByNonOwnerReverts() public {
-        vm.prank(nonOwner); // pretending to be nonOwner
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(nonOwner);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Ownable.OwnableUnauthorizedAccount.selector,
+                nonOwner
+            )
+        );
         token.mint(nonOwner, 100);
     }
 }
