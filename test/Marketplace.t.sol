@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../contracts/Token.sol";
@@ -17,7 +17,7 @@ contract MarketplaceTest is Test {
         seller = address(0x1);
         buyer = address(0x2);
 
-        // Setup initial balances
+        // setup initial balances
         token.mint(buyer, 1000 ether);
     }
 
@@ -36,6 +36,10 @@ contract MarketplaceTest is Test {
         assertEq(item.name, "Test Item");
         assertEq(item.price, 100 ether);
         assertTrue(item.active);
+
+        Marketplace.Item[] memory activeItems = marketplace.getActiveItems();
+        assertEq(activeItems.length, 1);
+        assertEq(activeItems[0].id, itemId);
     }
 
     function testBuyItem() public {
@@ -47,7 +51,7 @@ contract MarketplaceTest is Test {
             100 ether
         );
 
-        // Approve and buy
+        // approve and buy
         vm.prank(buyer);
         token.approve(address(marketplace), 100 ether);
 
@@ -59,6 +63,9 @@ contract MarketplaceTest is Test {
 
         Marketplace.Item memory item = marketplace.getItem(itemId);
         assertFalse(item.active);
+
+        Marketplace.Item[] memory activeItems = marketplace.getActiveItems();
+        assertEq(activeItems.length, 0); // no active items after purchase
     }
 
     function testGetActiveItems() public {
@@ -73,15 +80,79 @@ contract MarketplaceTest is Test {
             200 ether
         );
 
-        // Buy one item
+        // buy one item
         vm.prank(buyer);
         token.approve(address(marketplace), 200 ether);
 
         vm.prank(buyer);
         marketplace.buyItem(itemId2);
 
+        // verify only one item remains active
         Marketplace.Item[] memory activeItems = marketplace.getActiveItems();
         assertEq(activeItems.length, 1);
         assertEq(activeItems[0].name, "Item 1");
+        assertEq(activeItems[0].price, 100 ether);
+    }
+
+    function testDelistItem() public {
+        // List an item
+        vm.prank(seller);
+        uint256 itemId = marketplace.listItem(
+            "Test Item",
+            "Description",
+            100 ether
+        );
+
+        // Delist the item
+        vm.prank(seller);
+        marketplace.delistItem(itemId);
+
+        Marketplace.Item memory item = marketplace.getItem(itemId);
+        assertFalse(item.active);
+
+        Marketplace.Item[] memory activeItems = marketplace.getActiveItems();
+        assertEq(activeItems.length, 0); // No active items after delisting
+    }
+
+    function testCannotBuyOwnItem() public {
+        vm.prank(seller);
+        uint256 itemId = marketplace.listItem(
+            "Test Item",
+            "Description",
+            100 ether
+        );
+
+        vm.prank(seller);
+        vm.expectRevert("Cannot buy your own item");
+        marketplace.buyItem(itemId);
+    }
+
+    function testInsufficientAllowance() public {
+        vm.prank(seller);
+        uint256 itemId = marketplace.listItem(
+            "Test Item",
+            "Description",
+            100 ether
+        );
+
+        vm.prank(buyer);
+        vm.expectRevert("Insufficient allowance");
+        marketplace.buyItem(itemId);
+    }
+
+    function testInsufficientBalance() public {
+        vm.prank(seller);
+        uint256 itemId = marketplace.listItem(
+            "Test Item",
+            "Description",
+            2000 ether
+        );
+
+        vm.prank(buyer);
+        token.approve(address(marketplace), 2000 ether);
+
+        vm.prank(buyer);
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        marketplace.buyItem(itemId);
     }
 }
